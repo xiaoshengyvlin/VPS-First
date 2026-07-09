@@ -575,36 +575,49 @@ install_zako_cmd() {
 
 # ============ 管理面板 ============
 show_menu_banner() {
+    _hostname=$(hostname 2>/dev/null || echo "unknown")
+    _os_name=$(cat /etc/os-release 2>/dev/null | grep "^PRETTY_NAME=" | cut -d'"' -f2 || echo "$OS_ID")
+    _kernel=$(uname -r 2>/dev/null)
+    _ip=$(ip -4 addr show scope global 2>/dev/null | grep inet | awk '{print $2}' | cut -d/ -f1 | head -1 || echo "N/A")
+    _mem=$(free -m 2>/dev/null | awk '/^Mem:/{printf "%d/%d MB", $3, $2}' || echo "N/A")
+    _disk=$(df -h / 2>/dev/null | awk 'NR==2{printf "%s/%s (%s)", $3, $2, $5}' || echo "N/A")
+
     echo ""
-    echo "${BOLD}${CYAN}  ╔════════════════════════════════╗${NC}"
-    echo "${BOLD}${CYAN}  ║       Z A K O  管 理 面 板     ║${NC}"
-    echo "${BOLD}${CYAN}  ╚════════════════════════════════╝${NC}"
+    echo "${BOLD}${CYAN}  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄${NC}"
+    echo "${BOLD}${CYAN}  ▋${NC} ${BOLD}${YELLOW}Z A K O  管 理 面 板${NC}                              ${BOLD}${CYAN}▌${NC}"
+    echo "${BOLD}${CYAN}  ▙${NC} ${_hostname:-?}  │  ${_os_name:-?}  │  ${_kernel:-?}    ${BOLD}${CYAN}▟${NC}"
+    echo "${BOLD}${CYAN}  ██████████████████████████████████████████████████${NC}"
+    echo "  ${BOLD}IP${NC} ${_ip:-?}  ${BOLD}MEM${NC} ${_mem:-?}  ${BOLD}DISK${NC} ${_disk:-?}"
     echo ""
-    echo "  ${BOLD}SSH 相关${NC}"
-    echo "    ${GREEN}1.${NC} 删除旧 SSH 端口  ${YELLOW}(先确认新端口可用!)${NC}"
-    echo "    ${GREEN}2.${NC} 更换 SSH 端口"
+
+    echo "  ${BOLD}── SSH ──────────────────────────────${NC}"
+    echo "  ${GREEN} 1${NC}  删除旧 SSH 端口    ${YELLOW}(先确认新端口可用)${NC}"
+    echo "  ${GREEN} 2${NC}  更换 SSH 端口"
     echo ""
-    echo "  ${BOLD}安全${NC}"
-    echo "    ${GREEN}3.${NC} 安装 fail2ban"
+
+    echo "  ${BOLD}── 安全 ────────────────────────────${NC}"
+    echo "  ${GREEN} 3${NC}  安装 fail2ban"
     echo ""
-    echo "  ${BOLD}环境${NC}"
+
+    echo "  ${BOLD}── 环境 ────────────────────────────${NC}"
     if [ "$OS_ID" = "alpine" ]; then
-        echo "    ${GREEN}4.${NC} 安装 Docker (apk 方式)"
+        echo "  ${GREEN} 4${NC}  安装 Docker ${YELLOW}(apk)${NC}"
     else
-        echo "    ${GREEN}4.${NC} 安装 Docker + docker-compose"
-        echo "    ${GREEN}5.${NC} 安装宝塔面板"
+        echo "  ${GREEN} 4${NC}  安装 Docker + docker-compose"
+        echo "  ${GREEN} 5${NC}  安装宝塔面板"
     fi
     echo ""
-    echo "  ${BOLD}测试${NC}"
-    echo "    ${GREEN}6.${NC} NodeQuality 跑分测试"
-    echo "    ${GREEN}7.${NC} speedtest 测速"
+
+    echo "  ${BOLD}── 测试 ────────────────────────────${NC}"
+    echo "  ${GREEN} 6${NC}  NodeQuality 跑分测试"
+    echo "  ${GREEN} 7${NC}  speedtest 测速"
     echo ""
-    echo "  ${BOLD}其他${NC}"
-    echo "    ${GREEN}8.${NC} 安装 sing-box (233boy)"
+
+    echo "  ${BOLD}── 其他 ────────────────────────────${NC}"
+    echo "  ${GREEN} 8${NC}  安装 sing-box (233boy)"
     echo ""
-    echo "  ${GREEN}0.${NC} 退出"
-    echo ""
-    echo "  ${YELLOW}重新初始化: zako --force${NC}"
+
+    echo "  ${BOLD}  q  ${NC}退出      ${YELLOW}重初始化: zako --force${NC}"
     echo ""
 }
 
@@ -628,7 +641,7 @@ management_menu() {
             6) mgmt_nodequality; wait_enter; show_menu_banner ;;
             7) mgmt_speedtest; wait_enter; show_menu_banner ;;
             8) mgmt_install_singbox; wait_enter; show_menu_banner ;;
-            0) echo "  再见"; exit 0 ;;
+            q|Q) echo "  再见"; exit 0 ;;
             *) print_warn "无效选项" ;;
         esac
     done
