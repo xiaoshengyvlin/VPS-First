@@ -578,7 +578,6 @@ show_menu_banner() {
     _hostname=$(hostname 2>/dev/null || echo "?")
     _os_name=$(cat /etc/os-release 2>/dev/null | grep "^PRETTY_NAME=" | cut -d'"' -f2 || echo "$OS_ID")
     _kernel=$(uname -r 2>/dev/null | cut -d- -f1)
-    _ip=$(ip -4 addr show scope global 2>/dev/null | grep inet | awk '{print $2}' | cut -d/ -f1 | head -1 || echo "N/A")
     _mem=$(free -m 2>/dev/null | awk '/^Mem:/{printf "%d/%dM", $3, $2}' || echo "?")
     _cpu=$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^ //' | head -1 || echo "?")
     _swap=$(free -m 2>/dev/null | awk '/^Swap:/{printf "%d/%dM", $3, $2}' || echo "?")
@@ -591,7 +590,7 @@ show_menu_banner() {
     printf "  ${CYAN}│${NC}  ${BOLD}主机${NC} %-16s ${BOLD}系统${NC} %-14s ${CYAN}│${NC}\n" "$_hostname" "$_os_name"
     printf "  ${CYAN}│${NC}  ${BOLD}内核${NC} %-16s ${BOLD}运行${NC} %-14s ${CYAN}│${NC}\n" "$_kernel" "$_uptime"
     printf "  ${CYAN}│${NC}  ${BOLD}CPU${NC}  %-16s ${BOLD}内存${NC} %-14s ${CYAN}│${NC}\n" "$(echo "$_cpu" | cut -c1-16)" "$_mem"
-    printf "  ${CYAN}│${NC}  ${BOLD}IPv4${NC} %-16s ${BOLD}Swap${NC} %-14s ${CYAN}│${NC}\n" "$_ip" "$_swap"
+    printf "  ${CYAN}│${NC}  ${BOLD}内核${NC} %-16s ${BOLD}Swap${NC} %-14s ${CYAN}│${NC}\n" "$_kernel" "$_swap"
     echo "  ${CYAN}╰─────────────────────────────────────────────────────╯${NC}"
     echo ""
 
