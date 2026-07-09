@@ -59,5 +59,5 @@ bash <(wget -qO- https://github.com/xiaoshengyvlin/VPS-First/raw/main/zako.sh 2>
 ## 重新初始化
 
 ```bash
-zako.sh --force
+zako --force
 ```

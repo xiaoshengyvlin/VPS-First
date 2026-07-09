@@ -604,6 +604,8 @@ show_menu_banner() {
     echo ""
     echo "  ${GREEN}0.${NC} 退出"
     echo ""
+    echo "  ${YELLOW}重新初始化: zako --force${NC}"
+    echo ""
 }
 
 management_menu() {
