@@ -553,10 +553,12 @@ do_all() {
     echo "    4. 安装 Docker"
     if [ "$OS_ID" != "alpine" ]; then
         echo "    5. 安装宝塔面板"
-        echo "    6. 安装 sing-box"
+        echo "    6. NodeQuality 跑分测试"
+        echo "    7. 安装 sing-box"
     else
-        echo "    5. 安装 sing-box"
-        echo "    (宝塔面板不支持 Alpine，菜单已隐藏)"
+        echo "    5. (宝塔面板不支持 Alpine，菜单已隐藏)"
+        echo "    6. NodeQuality 跑分测试"
+        echo "    7. 安装 sing-box"
     fi
     echo ""
     echo "  ${YELLOW}提示: 用新 SSH 端口连接测试成功后，运行 ${BOLD}zako${NC} 选择 1 删除旧端口。${NC}"
@@ -591,8 +593,11 @@ show_menu_banner() {
         echo "    ${GREEN}5.${NC} 安装宝塔面板"
     fi
     echo ""
+    echo "  ${BOLD}测试${NC}"
+    echo "    ${GREEN}6.${NC} NodeQuality 跑分测试"
+    echo ""
     echo "  ${BOLD}其他${NC}"
-    echo "    ${GREEN}6.${NC} 安装 sing-box (233boy)"
+    echo "    ${GREEN}7.${NC} 安装 sing-box (233boy)"
     echo ""
     echo "  ${GREEN}0.${NC} 退出"
     echo ""
@@ -615,7 +620,8 @@ management_menu() {
                     mgmt_install_btpanel
                 fi
                 wait_enter; show_menu_banner ;;
-            6) mgmt_install_singbox; wait_enter; show_menu_banner ;;
+            6) mgmt_nodequality; wait_enter; show_menu_banner ;;
+            7) mgmt_install_singbox; wait_enter; show_menu_banner ;;
             0) echo "  再见"; exit 0 ;;
             *) print_warn "无效选项" ;;
         esac
@@ -701,6 +707,19 @@ mgmt_install_docker() {
     command -v docker >/dev/null 2>&1 && print_info "Docker 安装完成" || print_warn "Docker 安装失败"
     command -v docker-compose >/dev/null 2>&1 && print_info "docker-compose 安装完成" || \
         { docker compose version >/dev/null 2>&1 && print_info "Docker Compose 插件已可用"; }
+}
+
+mgmt_nodequality() {
+    print_title "NodeQuality 跑分测试"
+    echo "  在沙箱环境中运行 VPS 综合性能测试，测完自动清理，无痕测试。"
+    echo "  包含: Yabs + IP 质量 + 网络质量 + 融合怪部分功能。"
+    echo ""
+    ask_yn "确认执行?" || { print_info "取消"; return; }
+    print_info "正在下载并运行 NodeQuality..."
+    curl -sSL -o /tmp/nq.sh https://run.NodeQuality.com 2>/dev/null || \
+        wget -qO /tmp/nq.sh https://run.NodeQuality.com 2>/dev/null
+    bash /tmp/nq.sh
+    rm -f /tmp/nq.sh
 }
 
 mgmt_install_singbox() {
