@@ -754,6 +754,15 @@ mgmt_nodequality() {
     echo ""
     ask_yn "确认执行?" || { print_info "取消"; return; }
     print_info "正在下载并运行 NodeQuality..."
+    # NodeQuality 依赖 curl，确保已安装
+    if ! command -v curl >/dev/null 2>&1; then
+        print_info "安装 curl..."
+        case "$OS_ID" in
+            alpine) apk add curl 2>/dev/null || true ;;
+            debian|ubuntu) apt install -y curl 2>/dev/null || true ;;
+            centos) yum install -y curl 2>/dev/null || dnf install -y curl 2>/dev/null || true ;;
+        esac
+    fi
     curl -sSL -o /tmp/nq.sh https://run.NodeQuality.com 2>/dev/null || \
         wget -qO /tmp/nq.sh https://run.NodeQuality.com 2>/dev/null
     bash /tmp/nq.sh
