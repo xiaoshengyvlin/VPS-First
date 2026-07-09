@@ -554,11 +554,13 @@ do_all() {
     if [ "$OS_ID" != "alpine" ]; then
         echo "    5. 安装宝塔面板"
         echo "    6. NodeQuality 跑分测试"
-        echo "    7. 安装 sing-box"
+        echo "    7. speedtest 测速"
+        echo "    8. 安装 sing-box"
     else
         echo "    5. (宝塔面板不支持 Alpine，菜单已隐藏)"
         echo "    6. NodeQuality 跑分测试"
-        echo "    7. 安装 sing-box"
+        echo "    7. speedtest 测速"
+        echo "    8. 安装 sing-box"
     fi
     echo ""
     echo "  ${YELLOW}提示: 用新 SSH 端口连接测试成功后，运行 ${BOLD}zako${NC} 选择 1 删除旧端口。${NC}"
@@ -595,9 +597,10 @@ show_menu_banner() {
     echo ""
     echo "  ${BOLD}测试${NC}"
     echo "    ${GREEN}6.${NC} NodeQuality 跑分测试"
+    echo "    ${GREEN}7.${NC} speedtest 测速"
     echo ""
     echo "  ${BOLD}其他${NC}"
-    echo "    ${GREEN}7.${NC} 安装 sing-box (233boy)"
+    echo "    ${GREEN}8.${NC} 安装 sing-box (233boy)"
     echo ""
     echo "  ${GREEN}0.${NC} 退出"
     echo ""
@@ -621,7 +624,8 @@ management_menu() {
                 fi
                 wait_enter; show_menu_banner ;;
             6) mgmt_nodequality; wait_enter; show_menu_banner ;;
-            7) mgmt_install_singbox; wait_enter; show_menu_banner ;;
+            7) mgmt_speedtest; wait_enter; show_menu_banner ;;
+            8) mgmt_install_singbox; wait_enter; show_menu_banner ;;
             0) echo "  再见"; exit 0 ;;
             *) print_warn "无效选项" ;;
         esac
@@ -720,6 +724,21 @@ mgmt_nodequality() {
         wget -qO /tmp/nq.sh https://run.NodeQuality.com 2>/dev/null
     bash /tmp/nq.sh
     rm -f /tmp/nq.sh
+}
+
+mgmt_speedtest() {
+    print_title "speedtest 测速"
+    if command -v speedtest >/dev/null 2>&1; then
+        speedtest
+    elif command -v speedtest-cli >/dev/null 2>&1; then
+        speedtest-cli
+    else
+        print_warn "speedtest 未安装，正在安装..."
+        do_speedtest
+        command -v speedtest >/dev/null 2>&1 && speedtest && return
+        command -v speedtest-cli >/dev/null 2>&1 && speedtest-cli && return
+        print_error "安装失败，请稍后重试"
+    fi
 }
 
 mgmt_install_singbox() {
