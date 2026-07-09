@@ -578,7 +578,22 @@ show_menu_banner() {
     _hostname=$(hostname 2>/dev/null || echo "?")
     _os_name=$(cat /etc/os-release 2>/dev/null | grep "^PRETTY_NAME=" | cut -d'"' -f2 || echo "$OS_ID")
     _kernel=$(uname -r 2>/dev/null | cut -d- -f1)
-    _mem=$(free -m 2>/dev/null | awk '/^Mem:/{printf "%d/%dM", $3, $2}' || echo "?")
+    _mem=$({
+        # cgroup v2 (新内核)
+        [ -f /sys/fs/cgroup/memory.max ] && [ -f /sys/fs/cgroup/memory.current ] && {
+            limit=$(cat /sys/fs/cgroup/memory.max 2>/dev/null)
+            [ "$limit" != "max" ] && used=$(cat /sys/fs/cgroup/memory.current 2>/dev/null) && \
+                awk -v u="$used" -v l="$limit" 'END{printf "%.0f/%.0fM",u/1024/1024,l/1024/1024}' /dev/null && exit
+        }
+        # cgroup v1 (旧内核, OpenVZ)
+        [ -f /sys/fs/cgroup/memory/memory.limit_in_bytes ] && [ -f /sys/fs/cgroup/memory/memory.usage_in_bytes ] && {
+            limit=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null)
+            [ "$limit" -lt 9223372036854771712 ] 2>/dev/null && \
+                used=$(cat /sys/fs/cgroup/memory/memory.usage_in_bytes 2>/dev/null) && \
+                awk -v u="$used" -v l="$limit" 'END{printf "%.0f/%.0fM",u/1024/1024,l/1024/1024}' /dev/null && exit
+        }
+        free -m 2>/dev/null | awk '/^Mem:/{printf "%d/%dM", $3, $2}'
+    } || echo "?")
     _cpu=$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^ //' | head -1 || echo "?")
     _swap=$(free -m 2>/dev/null | awk '/^Swap:/{printf "%d/%dM", $3, $2}' || echo "?")
     _uptime=$(awk '{d=int($1/86400);h=int($1%86400/3600);m=int($1%3600/60);printf "%dd%dh%dm",d,h,m}' /proc/uptime 2>/dev/null || echo "?")
