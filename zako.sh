@@ -287,7 +287,7 @@ config_ssh() {
     echo "  当前 SSH 监听端口: ${BOLD}$(echo "$current_ports" | tr '\n' ' ')${NC}"
 
     while true; do
-        printf "  请输入新 SSH 端口 (1024-65535): "
+        printf "  请输入新 SSH 端口 (1024-65535，回车跳过): "
         read -r new_port
         [ -z "$new_port" ] && print_warn "跳过 SSH 端口配置" && return
         validate_port "$new_port" "$current_ports" && break
