@@ -38,7 +38,8 @@ bash <(wget -qO- https://github.com/xiaoshengyvlin/VPS-First/raw/main/zako.sh 2>
 | 3 | 安装 fail2ban |
 | 4 | 安装 Docker + docker-compose |
 | 5 | 安装宝塔面板（Alpine 隐藏） |
-| 6 | 安装 sing-box (233boy) |
+| 6 | NodeQuality 跑分测试 |
+| 7 | 安装 sing-box (233boy) |
 
 ## 安全设计
 
