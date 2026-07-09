@@ -39,7 +39,8 @@ bash <(wget -qO- https://github.com/xiaoshengyvlin/VPS-First/raw/main/zako.sh 2>
 | 4 | 安装 Docker + docker-compose |
 | 5 | 安装宝塔面板（Alpine 隐藏） |
 | 6 | NodeQuality 跑分测试 |
-| 7 | 安装 sing-box (233boy) |
+| 7 | speedtest 测速 |
+| 8 | 安装 sing-box (233boy) |
 
 ## 安全设计
 
