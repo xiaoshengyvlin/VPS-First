@@ -616,8 +616,9 @@ show_menu_banner() {
     echo "  ${BOLD}── 其他 ────────────────────────────${NC}"
     echo "  ${GREEN} 8${NC}  安装 sing-box (233boy)"
     echo ""
-
-    echo "  ${BOLD}  q  ${NC}退出      ${YELLOW}重初始化: zako --force${NC}"
+    echo "  ${BOLD}── 系统 ────────────────────────────${NC}"
+    echo "  ${GREEN} r${NC}  重新初始化     ${YELLOW}(删除配置，重走向导)${NC}"
+    echo "  ${GREEN} q${NC}  退出"
     echo ""
 }
 
@@ -641,6 +642,7 @@ management_menu() {
             6) mgmt_nodequality; wait_enter; show_menu_banner ;;
             7) mgmt_speedtest; wait_enter; show_menu_banner ;;
             8) mgmt_install_singbox; wait_enter; show_menu_banner ;;
+            r|R) mgmt_reinit ;;
             q|Q) echo "  再见"; exit 0 ;;
             *) print_warn "无效选项" ;;
         esac
@@ -726,6 +728,19 @@ mgmt_install_docker() {
     command -v docker >/dev/null 2>&1 && print_info "Docker 安装完成" || print_warn "Docker 安装失败"
     command -v docker-compose >/dev/null 2>&1 && print_info "docker-compose 安装完成" || \
         { docker compose version >/dev/null 2>&1 && print_info "Docker Compose 插件已可用"; }
+}
+
+mgmt_reinit() {
+    print_title "重新初始化"
+    print_warn "将删除配置标记，下次运行脚本将重新进入初始化向导。"
+    printf "  ${YELLOW}确认? [y/N]: ${NC}"; read -r yn
+    case "$yn" in [Yy]|[Yy][Ee][Ss]) ;; *) print_info "取消"; return ;; esac
+
+    rm -f "$MARKER_FILE"
+    print_info "标记已清除。输入 q 退出后，重新运行一键命令即可初始化。"
+    print_info "一键命令: bash <(wget -qO- https://github.com/xiaoshengyvlin/VPS-First/raw/main/zako.sh 2>/dev/null || curl -sSL https://github.com/xiaoshengyvlin/VPS-First/raw/main/zako.sh)"
+    wait_enter
+    exit 0
 }
 
 mgmt_nodequality() {
