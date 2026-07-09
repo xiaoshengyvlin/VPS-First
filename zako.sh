@@ -590,7 +590,7 @@ show_menu_banner() {
     printf "  ${CYAN}│${NC}  ${BOLD}主机${NC} %-16s ${BOLD}系统${NC} %-14s ${CYAN}│${NC}\n" "$_hostname" "$_os_name"
     printf "  ${CYAN}│${NC}  ${BOLD}内核${NC} %-16s ${BOLD}运行${NC} %-14s ${CYAN}│${NC}\n" "$_kernel" "$_uptime"
     printf "  ${CYAN}│${NC}  ${BOLD}CPU${NC}  %-16s ${BOLD}内存${NC} %-14s ${CYAN}│${NC}\n" "$(echo "$_cpu" | cut -c1-16)" "$_mem"
-    printf "  ${CYAN}│${NC}  ${BOLD}内核${NC} %-16s ${BOLD}Swap${NC} %-14s ${CYAN}│${NC}\n" "$_kernel" "$_swap"
+    printf "  ${CYAN}│${NC}  ${BOLD}Swap${NC} %-16s ${BOLD}负载${NC} %-14s ${CYAN}│${NC}\n" "$_swap" "$(awk '{printf "%.2f", $1}' /proc/loadavg 2>/dev/null || echo "?")"
     echo "  ${CYAN}╰─────────────────────────────────────────────────────╯${NC}"
     echo ""
 
