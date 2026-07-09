@@ -543,6 +543,20 @@ do_all() {
     install_zako_cmd
     log "[DONE] 初始化完成"
 
+    print_title "初始化检查"
+    _ports=$(get_ssh_ports)
+    [ -n "$_ports" ] && echo "  ${GREEN}✓${NC} SSH 端口       $(echo "$_ports" | tr '\n' ' ')" || echo "  ${RED}✗${NC} SSH 端口       未检测到"
+    [ "$DO_UPDATE" = true ] && echo "  ${GREEN}✓${NC} 系统更新      已执行" || echo "  ${YELLOW}○${NC} 系统更新      跳过"
+    [ "$DO_INSTALL_TOOLS" = true ] && echo "  ${GREEN}✓${NC} 基础工具      已安装" || echo "  ${YELLOW}○${NC} 基础工具      跳过"
+    [ "$DO_BBR" = true ] && { sysctl net.ipv4.tcp_congestion_control 2>/dev/null | grep -q bbr && echo "  ${GREEN}✓${NC} BBR           已启用" || echo "  ${RED}✗${NC} BBR           未生效"; } || echo "  ${YELLOW}○${NC} BBR           跳过"
+    [ -n "$NEW_HOSTNAME" ] && [ "$(hostname)" = "$NEW_HOSTNAME" ] && echo "  ${GREEN}✓${NC} 主机名         $NEW_HOSTNAME" || { [ -n "$NEW_HOSTNAME" ] && echo "  ${RED}✗${NC} 主机名         未生效" || echo "  ${YELLOW}○${NC} 主机名         跳过"; }
+    [ "$DO_TIMEZONE" = true ] && [ -f /etc/localtime ] && echo "  ${GREEN}✓${NC} 时区           $(readlink /etc/localtime 2>/dev/null | sed 's|.*/||' || echo '已设置')" || { [ "$DO_TIMEZONE" = true ] && echo "  ${RED}✗${NC} 时区           未设置" || echo "  ${YELLOW}○${NC} 时区           跳过"; }
+    [ "$DO_SPEEDTEST" = true ] && { command -v speedtest >/dev/null 2>&1 || command -v speedtest-cli >/dev/null 2>&1; } && echo "  ${GREEN}✓${NC} Speedtest     已安装" || { [ "$DO_SPEEDTEST" = true ] && echo "  ${RED}✗${NC} Speedtest     未安装" || echo "  ${YELLOW}○${NC} Speedtest     跳过"; }
+    [ "$DO_ZRAM" = true ] && swapon_list | grep -q zram && echo "  ${GREEN}✓${NC} ZRAM          已开启" || { [ "$DO_ZRAM" = true ] && echo "  ${RED}✗${NC} ZRAM          未生效" || echo "  ${YELLOW}○${NC} ZRAM          跳过"; }
+    [ "$DO_SWAP" = true ] && grep -q "/swapfile" /etc/fstab 2>/dev/null && echo "  ${GREEN}✓${NC} SWAP          已启用 (${SWAP_SIZE}MB)" || { [ "$DO_SWAP" = true ] && echo "  ${RED}✗${NC} SWAP          未生效" || echo "  ${YELLOW}○${NC} SWAP          跳过"; }
+    command -v zako >/dev/null 2>&1 && echo "  ${GREEN}✓${NC} zako 命令      已安装" || echo "  ${RED}✗${NC} zako 命令      未安装"
+    echo ""
+
     print_title "初始化完成!"
     echo ""
     echo "  以后运行 ${BOLD}zako${NC} 即可进入管理面板。"
@@ -595,8 +609,32 @@ show_menu_banner() {
         free -m 2>/dev/null | awk '/^Mem:/{printf "%d/%dM", $3, $2}'
     } || echo "?")
     _cpu=$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^ //' | head -1 || echo "?")
-    _swap=$(free -m 2>/dev/null | awk '/^Swap:/{printf "%d/%dM", $3, $2}' || echo "?")
+    _swap=$({
+        [ -f /sys/fs/cgroup/memory.swap.max ] && [ -f /sys/fs/cgroup/memory.swap.current ] && [ -f /sys/fs/cgroup/memory.current ] && {
+            sl=$(cat /sys/fs/cgroup/memory.swap.max 2>/dev/null)
+            [ "$sl" != "max" ] && su=$(cat /sys/fs/cgroup/memory.swap.current 2>/dev/null) && mu=$(cat /sys/fs/cgroup/memory.current 2>/dev/null) && \
+                awk -v a="$su" -v b="$mu" -v c="$sl" 'END{v=a-b;if(v<0)v=0;printf"%.0f/%.0fM",v/1024/1024,c/1024/1024}' /dev/null && exit
+        }
+        [ -f /sys/fs/cgroup/memory/memory.memsw.limit_in_bytes ] && [ -f /sys/fs/cgroup/memory/memory.memsw.usage_in_bytes ] && \
+        [ -f /sys/fs/cgroup/memory/memory.limit_in_bytes ] && [ -f /sys/fs/cgroup/memory/memory.usage_in_bytes ] && {
+            sl=$(cat /sys/fs/cgroup/memory/memory.memsw.limit_in_bytes 2>/dev/null)
+            ml=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null)
+            [ "$sl" -lt 9223372036854771712 ] 2>/dev/null && su=$(cat /sys/fs/cgroup/memory/memory.memsw.usage_in_bytes 2>/dev/null) && mu=$(cat /sys/fs/cgroup/memory/memory.usage_in_bytes 2>/dev/null) && \
+                awk -v a="$su" -v b="$mu" -v c="$sl" -v d="$ml" 'END{vu=a-b;if(vu<0)vu=0;vl=c-d;if(vl<0)vl=0;printf"%.0f/%.0fM",vu/1024/1024,vl/1024/1024}' /dev/null && exit
+        }
+        free -m 2>/dev/null | awk '/^Swap:/{printf "%d/%dM", $3, $2}'
+    } || echo "?")
     _uptime=$(awk '{d=int($1/86400);h=int($1%86400/3600);m=int($1%3600/60);printf "%dd%dh%dm",d,h,m}' /proc/uptime 2>/dev/null || echo "?")
+    read -r _ usr nice sys idle iow _ < /proc/stat 2>/dev/null
+    _t1=$((usr + nice + sys + idle + iow))
+    _i1=$((idle + iow))
+    sleep 1
+    read -r _ usr nice sys idle iow _ < /proc/stat 2>/dev/null
+    _t2=$((usr + nice + sys + idle + iow))
+    _i2=$((idle + iow))
+    _td=$((_t2 - _t1))
+    _id=$((_i2 - _i1))
+    [ "$_td" -gt 0 ] 2>/dev/null && _cpu_pct="$((100 - _id * 100 / _td))%" || _cpu_pct="?"
 
     echo ""
     echo "  ${CYAN}╭─────────────────────────────────────────────────────╮${NC}"
@@ -605,7 +643,7 @@ show_menu_banner() {
     printf "  ${CYAN}│${NC}  ${BOLD}主机${NC} %-16s ${BOLD}系统${NC} %-14s ${CYAN}│${NC}\n" "$_hostname" "$_os_name"
     printf "  ${CYAN}│${NC}  ${BOLD}内核${NC} %-16s ${BOLD}运行${NC} %-14s ${CYAN}│${NC}\n" "$_kernel" "$_uptime"
     printf "  ${CYAN}│${NC}  ${BOLD}CPU${NC}  %-16s ${BOLD}内存${NC} %-14s ${CYAN}│${NC}\n" "$(echo "$_cpu" | cut -c1-16)" "$_mem"
-    printf "  ${CYAN}│${NC}  ${BOLD}Swap${NC} %-16s ${BOLD}负载${NC} %-14s ${CYAN}│${NC}\n" "$_swap" "$(awk '{printf "%.2f", $1}' /proc/loadavg 2>/dev/null || echo "?")"
+    printf "  ${CYAN}│${NC}  ${BOLD}Swap${NC} %-16s ${BOLD}CPU${NC}  %-14s ${CYAN}│${NC}\n" "$_swap" "$_cpu_pct"
     echo "  ${CYAN}╰─────────────────────────────────────────────────────╯${NC}"
     echo ""
 
