@@ -41,6 +41,16 @@ bash <(wget -qO- https://github.com/xiaoshengyvlin/VPS-First/raw/main/zako.sh 2>
 | 6 | NodeQuality 跑分测试 |
 | 7 | speedtest 测速 |
 | 8 | 安装 sing-box (233boy) |
+| r | 重新初始化（清除配置）|
+| q | 退出 |
+
+## 重新初始化
+
+```bash
+zako --force
+```
+
+或在管理面板按 `r`。
 
 ## 安全设计
 
