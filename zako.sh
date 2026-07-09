@@ -567,10 +567,10 @@ do_all() {
 }
 
 install_zako_cmd() {
-    script_path=$(realpath "$0" 2>/dev/null || readlink -f "$0" 2>/dev/null || echo "$(cd "$(dirname "$0")" && pwd)/$(basename "$0")")
-    cp "$script_path" /usr/local/bin/zako 2>/dev/null || true
+    wget -qO /usr/local/bin/zako https://github.com/xiaoshengyvlin/VPS-First/raw/main/zako.sh 2>/dev/null || \
+        curl -sSL -o /usr/local/bin/zako https://github.com/xiaoshengyvlin/VPS-First/raw/main/zako.sh 2>/dev/null
     chmod +x /usr/local/bin/zako 2>/dev/null || true
-    print_info "已安装 zako 管理命令"
+    command -v zako >/dev/null 2>&1 && print_info "已安装 zako 管理命令" || print_warn "zako 命令安装失败，可稍后手动安装"
 }
 
 # ============ 管理面板 ============
