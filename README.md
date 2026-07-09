@@ -65,9 +65,3 @@ zako --force
 - Docker 通过 `apk` 安装，非官方脚本
 - 宝塔面板在管理面板中隐藏
 - sing-box 安装前自动补装 bash
-
-## 重新初始化
-
-```bash
-zako --force
-```
