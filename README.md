@@ -21,6 +21,7 @@ bash <(wget -qO- https://github.com/xiaoshengyvlin/VPS-First/raw/main/zako.sh 2>
 | 系统更新 | 可选更新所有软件包 |
 | 基础工具 | vim wget curl zip unzip lrzsz htop (net-tools) |
 | BBR | 可选开启 TCP BBR 拥塞控制 |
+| TCP 优化 | 扩大缓冲区，优化高延迟/跨国线路 |
 | 主机名 | 自定义 |
 | 时区 | 可选设为 Asia/Shanghai |
 | Speedtest | 可选安装 |
@@ -65,6 +66,7 @@ bash <(wget -qO- https://github.com/xiaoshengyvlin/VPS-First/raw/main/zako.sh 2>
   ✓ 系统更新       已执行
   ○ 基础工具       跳过
   ✓ BBR            已启用
+  ✓ TCP 优化       已启用
   ✓ 主机名         my-vps
   ✓ 时区           Asia/Shanghai
   ○ Speedtest      跳过
